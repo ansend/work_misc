@@ -1,0 +1,62 @@
+ apt-get -y install haproxy
+
+ apt-get -y install chkconfig
+
+ edit /etc/haproxy/haproxy.cfg  , add below data in the config file
+
+hadoop@hadoop-svr1:/etc/haproxy$ cat haproxy.cfg
+# this config needs haproxy-1.1.28 or haproxy-1.2.1
+
+global
+        log 127.0.0.1   local0
+        log 127.0.0.1   local1 notice
+        maxconn 4096
+        stats socket /tmp/haproxy.socket
+        pidfile /var/run/haproxy.pid
+        daemon
+        #log loghost    local0 info
+        #chroot /usr/share/haproxy
+        user haproxy
+        group haproxy
+        #debug
+        #quiet
+
+defaults
+        mode    tcp
+        option  tcplog
+        option  dontlognull
+        retries 3
+        option redispatch
+        maxconn 2000
+        timeout connect 5s
+        timeout client  50s
+        timeout server  50s
+listen apiserver
+        bind *:19000
+        mode tcp
+        balance roundrobin
+        server thrift1 10.26.7.223:9090 check
+        server thrift2 10.26.7.231:9090 check
+        server thrift3 10.26.7.233:9090 check
+        server thrift4 10.26.1.30:9090  check
+        server thrift5 10.26.1.31:9090  check
+        server thrift6 10.26.1.43:9090  check
+
+############################################## 
+ 
+ edit /etc/default/haproxy change "ENABLE" to 1 from 0 as following
+
+ # Set ENABLED to 1 if you want the init script to start haproxy.
+ENABLED=1
+# Add extra flags here.
+#EXTRAOPTS="-de -m 16"
+
+##############################################
+
+chkconfig --add haproxy
+
+##############################################
+
+service haproxy start
+
+ 
